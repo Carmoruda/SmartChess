@@ -7,348 +7,325 @@ import stockfish
 import datetime
 import requests
 
-nombreBlancas = ""
-nombreNegras = ""
 board = chess.Board()
-TOKEN = "TU_TOKEN"
-chat_id = "TU_CHAT_ID"
 
-def MandarMensaje(mensaje):
-    url = f"https://api.telegram.org/bot{TOKEN}/sendMessage?chat_id={chat_id}&text={mensaje}"
+white_player = ""
+black_player = ""
+
+ser = serial.Serial('COM5', 9800, timeout=1)
+
+# Telegram bot:
+TOKEN = "YOUR_BOT_TOKEN"
+CHAT_ID = "YOUR_CHAT_ID"
+
+
+def SendMessage(message):
+    """
+    Sends a message through the telegram bot.
+    :param message: Message that wants to be sent.
+    """
+    url = f"https://api.telegram.org/bot{TOKEN}/sendMessage?chat_id={CHAT_ID}&text={message}"
     requests.get(url).json()
 
-def PiezaCasilla(casilla):
-    pieza = board.piece_at(chess.parse_square(casilla))
 
-    if (str(pieza).upper() == "P"):
-        return "el peón"
-    elif (str(pieza).upper() == "R"):
-        return "la torre"
-    elif (str(pieza).upper() == "N"):
-        return "el caballo"
-    elif (str(pieza).upper() == "B"):
-        return "el alfil"
-    elif (str(pieza).upper() == "Q"):
-        return "la dama"
-    elif (str(pieza).upper() == "K"):
-        return "el rey"
+def PieceInSquare(chess_square):
+    piece = board.piece_at(chess.parse_square(chess_square))
 
-def InputBotones():
+    if str(piece).upper() == "P":
+        return "the pawn"
+    elif str(piece).upper() == "R":
+        return "the rook"
+    elif str(piece).upper() == "N":
+        return "the knight"
+    elif str(piece).upper() == "B":
+        return "the bishop"
+    elif str(piece).upper() == "Q":
+        return "the queen"
+    elif str(piece).upper() == "K":
+        return "the king"
 
-    movimientoLegal = False
 
-    botonNumero = ""
-    botonLetra = ""
+def ButtonsInputControl():
+    legal_move = False
 
-    while movimientoLegal == False:
-        contador = 0
+    button_number = ""
+    button_letter = ""
 
-        for contador in range(2):
-            if contador == 0:
-                print("\n\t Introduzca la letra de la casilla de la pieza.")
-                botonLetra = RecogerInputBoton().split("/")[0]
-                print("\t * Letra:" + botonLetra + "\n")
+    while not legal_move:
+        counter = 0
+
+        # Square of the piece the user wants to move.
+        for counter in range(2):
+            if counter == 0:
+                print("\n\t Enter the letter of the piece's square.")
+                button_letter = ButtonInput().split("/")[0]
+                print("\t * Letter:" + button_letter + "\n")
             else:
-                print("\t Introduzca el numero de la casilla de la pieza.")
-                botonNumero = RecogerInputBoton().split("/")[1]
-                botonNumero = int(botonNumero)
-                print("\t * Número:" + str(botonNumero) + "\n")
-            contador += 1
+                print("\t Enter the number of the piece's square.")
+                button_number = ButtonInput().split("/")[1]
+                button_number = int(button_number)
+                print("\t * Number:" + str(button_number) + "\n")
+            counter += 1
 
-        posActual = (botonLetra + str(botonNumero)).lower()
-        pieza = PiezaCasilla(posActual)
+        current_position = (button_letter + str(button_number)).lower()
+        piece = PieceInSquare(current_position)
 
+        counter = 0
 
-        contador = 0
-
-        for contador in range(2):
-            if contador == 0:
-                print("\t Introduzca la letra de la casilla a la que quiere mover.")
-                botonLetra = RecogerInputBoton().split("/")[0]
-                print("\t * Letra:" + botonLetra + "\n")
+        # Square the user wants to move the piece to.
+        for counter in range(2):
+            if counter == 0:
+                print("\t Enter the letter of the square you to move to.")
+                button_letter = ButtonInput().split("/")[0]
+                print("\t * Letter:" + button_letter + "\n")
             else:
-                print("\t Introduzca el número de la casilla a la que quiere mover.")
-                botonNumero = RecogerInputBoton().split("/")[1]
-                botonNumero = int(botonNumero)
-                print("\t * Número:" + str(botonNumero) + "\n")
-            contador += 1
+                print("\t Enter the number of the square you to move to.")
+                button_number = ButtonInput().split("/")[1]
+                button_number = int(button_number)
+                print("\t * number:" + str(button_number) + "\n")
+            counter += 1
 
-        posMover = (botonLetra + str(botonNumero)).lower()
+        move_position = (button_letter + str(button_number)).lower()
 
-        movimientoLegal = chess.Move.from_uci(posActual + posMover) in board.legal_moves
+        legal_move = chess.Move.from_uci(current_position + move_position) in board.legal_moves
 
-        if movimientoLegal:
-            board.push_san(posActual + posMover)
+        if legal_move:
+            board.push_san(current_position + move_position)
 
-            if board.turn == False:
-                mensaje = "\tBlancas (" + nombreBlancas + ") ha movido " + pieza + " de " + posActual + " a " + posMover + "."
-                MandarMensaje(mensaje)
+            if not board.turn:
+                message = ("\tWhite (" + white_player + ") has moved " + piece + " from " + current_position + " to "
+                           + move_position + ".")
+                SendMessage(message)
             else:
-                mensaje = "\tNegras (" + nombreNegras + ") ha movido " + pieza + " de " + posActual + " a " + posMover + "."
-                MandarMensaje(mensaje)
+                message = ("\tBlack (" + black_player + ") has moved " + piece + " from " + current_position + " to "
+                           + move_position + ".")
+                SendMessage(message)
 
-            return mensaje
+            return message
         else:
-            print("\n\t   Error! El movimiento realizado no es legal.\n\n")
+            print("\n\t   Error! The movement isn't legal.\n\n")
 
-def RecogerInputBoton():
+
+def ButtonInput():
     for i in range(50):
-        line = ser.readline()  # read a byte
+        line = ser.readline()  # Read a byte.
         if line:
-            string = line.decode()  # convert the byte string to a unicode string
-            # num = int(string) # convert the unicode string to an int
+            string = line.decode()  # Convert the byte string to a unicode string.
+            # Num = int(string) convert the unicode string to an int
             return string
 
 
-def NuevaPartida():
-    global nombreBlancas
-    global nombreNegras
+def NewGamePlayerPlayer():
+    global white_player
+    global black_player
     global ser
 
-    ser = serial.Serial('COM8', 9800, timeout=1)
-
     clear()
-    print(("-" * 30) + " NUEVA PARTIDA " + ("-" * 30))
-    nombreBlancas = input("\n\t* Nombre jugador blancas: ")
-    nombreNegras = input("\n\t* Nombre jugador negras: ")
 
-    input("\n\t Pulse enter para continuar.")
+    print(("-" * 30) + " NEW GAME " + ("-" * 30))
+    white_player = input("\n\t* White player: ")
+    black_player = input("\n\t* Black player: ")
 
-    MandarMensaje("Nueva partida creada:\n\t * Jugador blancas: " + nombreBlancas + "\n\t * Jugador negras: " + nombreNegras)
+    input("\n\t Press enter to continue.")
+
+    SendMessage("New game created:\n\t * WhitePlayer: " + white_player + "\n\t * Black player: " + black_player)
+
+    # Starting position
     stockfish.set_fen_position("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
 
-    Partida()
+    Game()
 
-def NuevaPartidaBot():
-    global nombreBlancas
-    global nombreNegras
+
+def NewGamePlayerBot():
+    global white_player
+    global black_player
     global ser
 
-    ser = serial.Serial('COM8', 9800, timeout=1)
+    clear()
+    print(("-" * 30) + " NEW GAME " + ("-" * 30))
+
+    print("   Select one of the following options:\n\t1   Play with white.\n\t2   Play with black.\n")
+    menu_action = input("\n  Enter your choice:\n  ===> ")
 
     clear()
-    print(("-" * 30) + " NUEVA PARTIDA " + ("-" * 30))
+    print(("-" * 30) + " NEW GAME " + ("-" * 30))
 
-    print("   Seleccione una de las siguientes opciones:\n\t1   Jugar con blancas.\n\t2   Jugar con negras.\n")
-    accionMenu = input("\n  Introduzca su elección:\n  ===> ")
+    if menu_action == "1":
+        white_player = input("\n\t * White player: ")
+        black_player = "Stockfish"
+        print("\n\t * Black player: Stockfish")
+        input("\n\tPress enter to continue.")
+        SendMessage("New game created:\n\t * WhitePlayer: " + white_player + "\n\t * Black player: " + black_player)
 
-    clear()
-    print(("-" * 30) + " NUEVA PARTIDA " + ("-" * 30))
-
-    if (accionMenu == "1"):
-        nombreBlancas = input("\n\t * Nombre jugador blancas: ")
-        nombreNegras = "Stockfish"
-        print("\n\t * Nombre jugador negras: Stockfish")
-        input("\n\tPulse enter para continuar.")
-
+        # Starting position
         stockfish.set_fen_position("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
 
-        MandarMensaje("Nueva partida creada:\n\t * Jugador blancas: " + nombreBlancas + "\n\t * Jugador negras: " + nombreNegras)
-
         clear()
-        PartidaBotBlancas()
+        GamePlayerWhiteBotBack()
+    elif menu_action == "2":
+        white_player = "Stockfish"
+        print("\n\t * White player: Stockfish")
+        black_player = input("\n\t * Black player: ")
+        input("\n\tPress enter to continue.")
+        SendMessage("New game created:\n\t * WhitePlayer: " + white_player + "\n\t * Black player: " + black_player)
 
-
-    elif (accionMenu == "2"):
-        nombreBlancas = "Stockfish"
-        print("\n\t * Nombre jugador blancas: Stockfish")
-        nombreNegras = input("\n\t * Nombre jugador negras: ")
-
-        input("\n\tPulse enter para continuar.")
-
+        # Starting position
         stockfish.set_fen_position("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
 
-        MandarMensaje("Nueva partida creada:\n\t * Jugador blancas: " + nombreBlancas + "\n\t * Jugador negras: " + nombreNegras)
-
         clear()
-        PartidaBotNegras()
+        GamePlayerBlackBotWhite()
 
-def ComprobarFin():
+
+def CheckCheckMate():
     if board.is_checkmate():
         if board.turn:
-            print("\nPartida finalizada! Jaque mate de las negras.\n")
-            MandarMensaje("Partida finalizada! Jaque mate de las negras.")
+            print("\nGame over! Black checkmate.\n")
+            SendMessage("Game over! Black checkmate")
         else:
-            print("\nPartida finalilzada! Jaque mate de las blancas.\n")
-            MandarMensaje("Partida finalizada! Jaque mate de las blancas.")
+            print("\nGame over! White checkmate.\n")
+            SendMessage("Game over! White checkmate.")
     elif board.is_stalemate():
         if board.turn:
-            print("\nPartida finalizada! Rey ahogado por parte de las negras.\n")
-            MandarMensaje("Partida finalizada!  Rey ahogado por parte de las negras.")
+            print("\nGame over! Stalemate king by Black.\n")
+            SendMessage("Game over! Stalemate king by Black.")
         else:
-            print("\nPartida finalilzada! Rey ahogado por parte de las blancas.\n")
-            MandarMensaje("Partida finalizada!  Rey ahogado por parte de las blancas.")
+            print("\nGame over! Stalemate king by White.\n")
+            SendMessage("Game over! Stalemate king by White.")
 
-def PartidaBotBlancas():
 
-    contador = 0
-    jugadas = []
-    while (board.is_checkmate() == False and board.is_stalemate() == False):
+def GamePlayerWhiteBotBack():
+    counter = 0
+    moves = []
 
-        turno = ("-" * 30) + " TURNO DE "
-        if (contador % 2 == 0):
-            turno += nombreBlancas.upper() + " "
-        else:
-            turno += nombreNegras.upper() + " "
+    while not board.is_checkmate() and not board.is_stalemate():
+        PrintTurn(counter)
 
-        clear()
-        print(turno + ("-" * 30) + "\n")
-
-        if (contador % 2 == 0):
-            jugada = InputBotones()
-            print(jugada + "\n")
-            jugada = jugada.split()
-            jugadas.append(jugada[7] + jugada[9].replace(".", ""))
-            pieza = PiezaCasilla(jugada[9].replace(".", ""))
+        if counter % 2 == 0:
+            PlayerMove(moves)
 
         else:
-            stockfish.set_position(jugadas)
-            siguiente = stockfish.get_best_move()
-            jugadas.append(siguiente)
+            StockfishMove(moves)
 
-            board.push_san(siguiente)
-            siguiente = re.findall('..?', siguiente)
+        SetPositionCheckMate(moves, counter)
 
-            pieza = PiezaCasilla(siguiente[1])
 
-            if board.turn == False:
-                mensaje = "Blancas (" + nombreBlancas + ") ha movido " + pieza + " de " + siguiente[0] + " a " + siguiente[1] + "."
-                MandarMensaje(mensaje)
-            else:
-                mensaje = "Negras (" + nombreNegras + ") ha movido " + pieza + " de " + siguiente[0] + " a " + siguiente[1] + "."
-                MandarMensaje(mensaje)
+def GamePlayerBlackBotWhite():
+    counter = 0
+    moves = []
+    while not board.is_checkmate() and not board.is_stalemate():
+        PrintTurn(counter)
 
-            print("\t" + mensaje + "\n\n")
-
-        stockfish.set_position(jugadas)
-        print(stockfish.get_board_visual())
-
-        contador += 1
-
-        ComprobarFin()
-
-        input("\t Pulse enter para continuar.")
-
-def PartidaBotNegras():
-
-    contador = 0
-    jugadas = []
-    while (board.is_checkmate() == False and board.is_stalemate() == False):
-
-        turno = ("-" * 30) + " TURNO DE "
-        if (contador % 2 == 0):
-            turno += nombreBlancas.upper() + " "
+        if counter % 2 == 0:
+            StockfishMove(moves)
         else:
-            turno += nombreNegras.upper() + " "
+            PlayerMove(moves)
 
-        clear()
-        print(turno + ("-" * 30) + "\n")
+        SetPositionCheckMate(moves, counter)
 
-        if (contador % 2 == 0):
-            stockfish.set_position(jugadas)
-            siguiente = stockfish.get_best_move()
-            jugadas.append(siguiente)
 
-            board.push_san(siguiente)
-            siguiente = re.findall('..?', siguiente)
+def SetPositionCheckMate(moves, counter):
 
-            pieza = PiezaCasilla(siguiente[1])
+    stockfish.set_position(moves)
+    print(stockfish.get_board_visual())
 
-            if board.turn == False:
-                mensaje = "Blancas (" + nombreBlancas + ") ha movido " + pieza + " de " + siguiente[0] + " a " + siguiente[1] + "."
-                MandarMensaje(mensaje)
-            else:
-                mensaje = "Negras (" + nombreNegras + ") ha movido " + pieza + " de " + siguiente[0] + " a " + siguiente[1] + "."
-                MandarMensaje(mensaje)
+    counter += 1
 
-            print("\t" + mensaje + "\n\n")
-        else:
-            jugada = InputBotones()
-            print(jugada + "\n")
-            jugada = jugada.split(" ")
-            pieza = PiezaCasilla(jugada[9].replace(".", ""))
-            jugadas.append(jugada[7] + jugada[9].replace(".", ""))
+    CheckCheckMate()
 
-        stockfish.set_position(jugadas)
-        print(stockfish.get_board_visual())
+    input("\tPress enter to continue.")
 
-        contador += 1
 
-        ComprobarFin()
+def PrintTurn(counter):
+    turn = ("-" * 30)
 
-        input("s\t Pulse enter para continuar.")
+    if counter % 2 == 0:
+        turn += white_player.upper() + "'S "
+    else:
+        turn += black_player.upper() + "'S "
 
-def Partida():
-    contador = 0
+    turn += "TURN"
 
-    while (board.is_checkmate() == False and board.is_stalemate() == False):
+    clear()
+    print(turn + ("-" * 30) + "\n")
 
-        turno = ("-" * 30) + " TURNO DE "
-        if (contador % 2 == 0):
-            turno += nombreBlancas.upper() + " "
-        else:
-            turno += nombreNegras.upper() + " "
 
-        clear()
-        print(turno + ("-" * 30) + "\n")
+def StockfishMove(moves):
+    stockfish.set_position(moves)
+    next_move = stockfish.get_best_move()
+    moves.append(next_move)
 
-        print(InputBotones() + "\n")
+    board.push_san(next_move)
+    next_move = re.findall('..?', next_move)
 
+    piece = PieceInSquare(next_move[1])
+
+    if not board.turn:
+        message = ("\tBlack (" + black_player + ") has moved " + piece + " from " + next_move[0] + " to "
+                   + next_move[1] + ".")
+    else:
+        message = ("\tBlack (" + black_player + ") has moved " + piece + " from " + next_move[0] + " to "
+                   + next_move[1] + ".")
+
+    SendMessage(message)
+    print("\t" + message + "\n\n")
+
+
+def PlayerMove(moves):
+    move = ButtonsInputControl()
+    print(move + "\n")
+    move = move.split()
+    moves.append(move[7] + move[9].replace(".", ""))
+    PieceInSquare(move[9].replace(".", ""))
+
+
+def Game():
+    counter = 0
+
+    while not board.is_checkmate() and not board.is_stalemate():
+        PrintTurn(counter)
+        print(ButtonsInputControl() + "\n")
         print(board)
 
-        ComprobarFin()
+        CheckCheckMate()
 
-        input("\n\tPulse enter para continuar.")
-        contador += 1
+        counter += 1
+        input("\tPress enter to continue.")
 
 
-
-def NuevaSesion():
+def NewGameSession():
     clear()
-    ahora = datetime.datetime.now()
+    date_time = datetime.datetime.now()
 
-    bienvenidaJuego = ("-" * 50) + " AJEDREZ " + ("-" * 50) + "\n\n"
-    bienvenidaJuego += "\t * Día: " + ahora.strftime("%d/%m/%Y") + "\n"
-    bienvenidaJuego += "\t * Hora: " + ahora.strftime("%H:%M") + "\n"
-    print(bienvenidaJuego)
+    welcome_message = ("-" * 50) + " SMART CHESS " + ("-" * 50) + "\n\n"
+    welcome_message += "\t * Día: " + date_time.strftime("%d/%m/%Y") + "\n"
+    welcome_message += "\t * Hora: " + date_time.strftime("%H:%M") + "\n"
+    print(welcome_message)
 
 
 def Menu():
-    accionMenu = ''
 
     while True:
-        NuevaSesion()
+        NewGameSession()
 
-        print("   Seleccione una de las siguientes opciones:\n\t1   Nueva partida 1vs1.\n\t2   Nueva partida 1vsbot.\n\t3   Salir")
-        accionMenu = input("\n  Introduzca su elección:\n  ===> ")
+        print("   Select one of the following options:\n\t1   New game 1vs1.\n\t2   New game 1vsBot."
+              "\n\t3   Exit.")
+        menu_option = input("\n  Enter your choice:\n  ===> ")
 
-        if (accionMenu == "1"):
-            NuevaPartida()
-        elif (accionMenu == "2"):
-            NuevaPartidaBot()
-        elif (accionMenu == "3"):
+        if menu_option == "1":
+            NewGamePlayerPlayer()
+        elif menu_option == "2":
+            NewGamePlayerBot()
+        elif menu_option == "3":
             sys.exit()
         else:
-            accionMenu = "\n  Error! Los valores introducidos deben ser 1 o 2.\n"
+            print("\n  Error! The value entered must be 1, 2 or 3.\n")
+            input("\tPress enter to continue.")
+            clear()
 
-clear = lambda: os.system('cls')
+
+def clear(): os.system('cls')
+
 
 if __name__ == "__main__":
     stockfish = stockfish.Stockfish(path="stockfish.exe")
     Menu()
-
-
-
-"""
-ser = serial.Serial('COM8', 9800, timeout=1)
-time.sleep(2)
-
-for i in range(50):
-    line = ser.readline()   # read a byte
-    if line:
-        string = line.decode()  # convert the byte string to a unicode string
-        #num = int(string) # convert the unicode string to an int
-        print(string)
-
-ser.close()
-"""
