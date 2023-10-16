@@ -21,7 +21,7 @@ CHAT_ID = "YOUR_CHAT_ID"
 
 def SendMessage(message):
     """
-    Sends a message through the telegram bot.
+    Send a message through the telegram bot.
     :param message: Message that wants to be sent.
     """
     url = f"https://api.telegram.org/bot{TOKEN}/sendMessage?chat_id={CHAT_ID}&text={message}"
@@ -29,114 +29,34 @@ def SendMessage(message):
 
 
 def PieceInSquare(chess_square):
+    """
+    Identify which piece is placed in a specific square.
+    :param chess_square: Coordinate of the box for whose piece we want to check.
+    :return: String with the name of the piece.
+    """
+
     piece = board.piece_at(chess.parse_square(chess_square))
 
-    if str(piece).upper() == "P":
-        return "the pawn"
-    elif str(piece).upper() == "R":
-        return "the rook"
-    elif str(piece).upper() == "N":
-        return "the knight"
-    elif str(piece).upper() == "B":
-        return "the bishop"
-    elif str(piece).upper() == "Q":
-        return "the queen"
-    elif str(piece).upper() == "K":
-        return "the king"
-
-
-def ButtonsInputControl():
-    legal_move = False
-
-    button_number = ""
-    button_letter = ""
-
-    while not legal_move:
-        counter = 0
-
-        # Square of the piece the user wants to move.
-        for counter in range(2):
-            if counter == 0:
-                print("\n\t Enter the letter of the piece's square.")
-                button_letter = ButtonInput().split("/")[0]
-                print("\t * Letter:" + button_letter + "\n")
-            else:
-                print("\t Enter the number of the piece's square.")
-                button_number = ButtonInput().split("/")[1]
-                button_number = int(button_number)
-                print("\t * Number:" + str(button_number) + "\n")
-            counter += 1
-
-        current_position = (button_letter + str(button_number)).lower()
-        piece = PieceInSquare(current_position)
-
-        counter = 0
-
-        # Square the user wants to move the piece to.
-        for counter in range(2):
-            if counter == 0:
-                print("\t Enter the letter of the square you to move to.")
-                button_letter = ButtonInput().split("/")[0]
-                print("\t * Letter:" + button_letter + "\n")
-            else:
-                print("\t Enter the number of the square you to move to.")
-                button_number = ButtonInput().split("/")[1]
-                button_number = int(button_number)
-                print("\t * number:" + str(button_number) + "\n")
-            counter += 1
-
-        move_position = (button_letter + str(button_number)).lower()
-
-        legal_move = chess.Move.from_uci(current_position + move_position) in board.legal_moves
-
-        if legal_move:
-            board.push_san(current_position + move_position)
-
-            if not board.turn:
-                message = ("\tWhite (" + white_player + ") has moved " + piece + " from " + current_position + " to "
-                           + move_position + ".")
-                SendMessage(message)
-            else:
-                message = ("\tBlack (" + black_player + ") has moved " + piece + " from " + current_position + " to "
-                           + move_position + ".")
-                SendMessage(message)
-
-            return message
-        else:
-            print("\n\t   Error! The movement isn't legal.\n\n")
-
-
-def ButtonInput():
-    for i in range(50):
-        line = ser.readline()  # Read a byte.
-        if line:
-            string = line.decode()  # Convert the byte string to a unicode string.
-            # Num = int(string) convert the unicode string to an int
-            return string
-
-
-def NewGamePlayerPlayer():
-    global white_player
-    global black_player
-    global ser
-
-    clear()
-
-    print(("-" * 30) + " NEW GAME " + ("-" * 30))
-    white_player = input("\n\t* White player: ")
-    black_player = input("\n\t* Black player: ")
-
-    input("\n\t Press enter to continue.")
-
-    SendMessage("New game created:\n\t * WhitePlayer: " + white_player + "\n\t * Black player: " + black_player)
-
-    # Starting position
-    stockfish.set_fen_position("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
-
-    Game()
+    match str(piece).upper():
+        case "P":
+            return "the pawn"
+        case "R":
+            return "the rook"
+        case "N":
+            return "the knight"
+        case "B":
+            return "the bishop"
+        case "Q":
+            return "the queen"
+        case "K":
+            return "the king"
 
 
 def NewGamePlayerBot():
+    """
+   Assign one of the players the name entered by the user and the other to stockfish, set stockfish to the starting
+   board position and start the game.
+   """
     global white_player
     global black_player
     global ser
@@ -161,7 +81,7 @@ def NewGamePlayerBot():
         stockfish.set_fen_position("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
 
         clear()
-        GamePlayerWhiteBotBack()
+        GamePlayerWhiteBotBlack()
     elif menu_action == "2":
         white_player = "Stockfish"
         print("\n\t * White player: Stockfish")
@@ -176,7 +96,117 @@ def NewGamePlayerBot():
         GamePlayerBlackBotWhite()
 
 
+def ButtonsInputControl():
+    """
+    Control the input of the buttons of the square in which the piece is located and the square to which
+    it is to be moved, as well as checking if the movement is legal.
+    :return: String indicating the player, piece and move made.
+    """
+
+    legal_move = False
+
+    button_number = ""
+    button_letter = ""
+
+    while not legal_move:
+        counter = 0
+
+        # Square in which the piece is located.
+        for counter in range(2):
+            if counter == 0:
+                print("\n\t Enter the letter of the piece's square.")
+                button_letter = ButtonInput().split("/")[0]
+                print("\t * Letter:" + button_letter + "\n")
+            else:
+                print("\t Enter the number of the piece's square.")
+                button_number = ButtonInput().split("/")[1]
+                button_number = int(button_number)
+                print("\t * Number:" + str(button_number) + "\n")
+            counter += 1
+
+        current_position = (button_letter + str(button_number)).lower()
+        piece = PieceInSquare(current_position)
+
+        counter = 0
+
+        # Square to which the piece is to be moved.
+        for counter in range(2):
+            if counter == 0:
+                print("\t Enter the letter of the square you to move to.")
+                button_letter = ButtonInput().split("/")[0]
+                print("\t * Letter:" + button_letter + "\n")
+            else:
+                print("\t Enter the number of the square you to move to.")
+                button_number = ButtonInput().split("/")[1]
+                button_number = int(button_number)
+                print("\t * number:" + str(button_number) + "\n")
+            counter += 1
+
+        move_position = (button_letter + str(button_number)).lower()
+
+        # Legal move?
+        legal_move = chess.Move.from_uci(current_position + move_position) in board.legal_moves
+
+        if legal_move:
+            board.push_san(current_position + move_position)
+
+            if not board.turn:  # White turn
+                message = ("\tWhite (" + white_player + ") has moved " + piece + " from " + current_position + " to "
+                           + move_position + ".")
+                SendMessage(message)
+            else:  # Black turn
+                message = ("\tBlack (" + black_player + ") has moved " + piece + " from " + current_position + " to "
+                           + move_position + ".")
+                SendMessage(message)
+
+            return message
+        else:
+            print("\n\t   Error! The movement isn't legal.\n\n")
+
+
+def ButtonInput():
+    """
+    Collect the input from the buttons.
+    :return: String indicating which button has been pressed.
+    """
+
+    for i in range(50):
+        line = ser.readline()  # Read a byte.
+        if line:
+            string = line.decode()  # Convert the byte string to a unicode string.
+            # Num = int(string) convert the unicode string to an int
+            return string
+
+
+def NewGamePlayerPlayer():
+    """
+    Assign black and white players the name entered by the user, set stockfish to the starting
+    board position and start the game.
+    """
+    global white_player
+    global black_player
+    global ser
+
+    clear()
+
+    print(("-" * 30) + " NEW GAME " + ("-" * 30))
+    white_player = input("\n\t* White player: ")
+    black_player = input("\n\t* Black player: ")
+
+    input("\n\t Press enter to continue.")
+
+    SendMessage("New game created:\n\t * WhitePlayer: " + white_player + "\n\t * Black player: " + black_player)
+
+    # Starting position
+    stockfish.set_fen_position("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
+
+    Game()
+
+
 def CheckCheckMate():
+    """
+    Check current board position to identify is there is a stalemate or checkmate.
+    """
     if board.is_checkmate():
         if board.turn:
             print("\nGame over! Black checkmate.\n")
@@ -193,7 +223,10 @@ def CheckCheckMate():
             SendMessage("Game over! Stalemate king by White.")
 
 
-def GamePlayerWhiteBotBack():
+def GamePlayerWhiteBotBlack():
+    """
+    Control of game moves where stockfish is black and the player white.
+    """
     counter = 0
     moves = []
 
@@ -210,8 +243,12 @@ def GamePlayerWhiteBotBack():
 
 
 def GamePlayerBlackBotWhite():
+    """
+    Control of game moves where stockfish is white and the player black.
+    """
     counter = 0
     moves = []
+
     while not board.is_checkmate() and not board.is_stalemate():
         PrintTurn(counter)
 
@@ -224,7 +261,11 @@ def GamePlayerBlackBotWhite():
 
 
 def SetPositionCheckMate(moves, counter):
-
+    """
+    Set stockfish to the new position and check if the there is checkmate/stalemate.
+    :param moves: Array of game moves.
+    :param counter: Move counter.
+    """
     stockfish.set_position(moves)
     print(stockfish.get_board_visual())
 
@@ -236,6 +277,10 @@ def SetPositionCheckMate(moves, counter):
 
 
 def PrintTurn(counter):
+    """
+    Display the name of the player whose turn it is.
+    :param counter: Whose turn it is (even White, odd Black).
+    """
     turn = ("-" * 30)
 
     if counter % 2 == 0:
@@ -250,6 +295,10 @@ def PrintTurn(counter):
 
 
 def StockfishMove(moves):
+    """
+    Control stockfish next move and send it through message.
+    :param moves: Array of game moves.
+    """
     stockfish.set_position(moves)
     next_move = stockfish.get_best_move()
     moves.append(next_move)
@@ -271,6 +320,10 @@ def StockfishMove(moves):
 
 
 def PlayerMove(moves):
+    """
+    Control player next move.
+    :param moves: Array of game moves.
+    """
     move = ButtonsInputControl()
     print(move + "\n")
     move = move.split()
@@ -279,6 +332,10 @@ def PlayerMove(moves):
 
 
 def Game():
+    """
+    Control game logic (whose turn is, if there is checkmate and print board).
+    """
+
     counter = 0
 
     while not board.is_checkmate() and not board.is_stalemate():
@@ -293,6 +350,10 @@ def Game():
 
 
 def NewGameSession():
+    """
+    Show smart chess name, current date and time.
+    """
+
     clear()
     date_time = datetime.datetime.now()
 
@@ -303,6 +364,10 @@ def NewGameSession():
 
 
 def Menu():
+    """
+    Menu of the smart chess. User may play games against another player or stockfish.
+    :return:
+    """
 
     while True:
         NewGameSession()
@@ -311,16 +376,17 @@ def Menu():
               "\n\t3   Exit.")
         menu_option = input("\n  Enter your choice:\n  ===> ")
 
-        if menu_option == "1":
-            NewGamePlayerPlayer()
-        elif menu_option == "2":
-            NewGamePlayerBot()
-        elif menu_option == "3":
-            sys.exit()
-        else:
-            print("\n  Error! The value entered must be 1, 2 or 3.\n")
-            input("\tPress enter to continue.")
-            clear()
+        match menu_option:
+            case "1":
+                NewGamePlayerPlayer()
+            case "2":
+                NewGamePlayerBot()
+            case "3":
+                sys.exit()
+            case _:
+                print("\n  Error! The value entered must be 1, 2 or 3.\n")
+                input("\tPress enter to continue.")
+                clear()
 
 
 def clear(): os.system('cls')
