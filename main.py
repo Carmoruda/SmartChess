@@ -73,9 +73,9 @@ def NewGamePlayerBot():
     if menu_action == "1":
         white_player = input("\n\t * White player: ")
         black_player = "Stockfish"
-        print("\n\t * Black player: Stockfish")
+        print("\t * Black player: Stockfish")
         input("\n\tPress enter to continue.")
-        SendMessage("New game created:\n\t * WhitePlayer: " + white_player + "\n\t * Black player: " + black_player)
+        SendMessage("New game created:\n\t * White player: " + white_player + "\n\t * Black player: " + black_player)
 
         # Starting position
         stockfish.set_fen_position("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
@@ -116,12 +116,12 @@ def ButtonsInputControl():
             if counter == 0:
                 print("\n\t Enter the letter of the piece's square.")
                 button_letter = ButtonInput().split("/")[0]
-                print("\t * Letter:" + button_letter + "\n")
+                print("\t * Letter: " + button_letter + "\n")
             else:
                 print("\t Enter the number of the piece's square.")
                 button_number = ButtonInput().split("/")[1]
                 button_number = int(button_number)
-                print("\t * Number:" + str(button_number) + "\n")
+                print("\t * Number: " + str(button_number) + "\n")
             counter += 1
 
         current_position = (button_letter + str(button_number)).lower()
@@ -309,7 +309,7 @@ def StockfishMove(moves):
     piece = PieceInSquare(next_move[1])
 
     if not board.turn:
-        message = ("\tBlack (" + black_player + ") has moved " + piece + " from " + next_move[0] + " to "
+        message = ("\tWhite (" + white_player + ") has moved " + piece + " from " + next_move[0] + " to "
                    + next_move[1] + ".")
     else:
         message = ("\tBlack (" + black_player + ") has moved " + piece + " from " + next_move[0] + " to "
@@ -358,8 +358,8 @@ def NewGameSession():
     date_time = datetime.datetime.now()
 
     welcome_message = ("-" * 50) + " SMART CHESS " + ("-" * 50) + "\n\n"
-    welcome_message += "\t * Día: " + date_time.strftime("%d/%m/%Y") + "\n"
-    welcome_message += "\t * Hora: " + date_time.strftime("%H:%M") + "\n"
+    welcome_message += "\t * Date: " + date_time.strftime("%d/%m/%Y") + "\n"
+    welcome_message += "\t * Time: " + date_time.strftime("%H:%M") + "\n"
     print(welcome_message)
 
 
