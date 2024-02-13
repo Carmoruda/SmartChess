@@ -1,7 +1,8 @@
 import os
 import re
 import sys
-import serial
+import art
+#import serial
 import chess
 import stockfish
 import datetime
@@ -12,7 +13,7 @@ board = chess.Board()
 white_player = ""
 black_player = ""
 
-ser = serial.Serial('COM5', 9800, timeout=1)
+#ser = serial.Serial('COM5', 9800, timeout=1)
 
 # Telegram bot:
 TOKEN = "YOUR_BOT_TOKEN"
@@ -112,12 +113,14 @@ def buttons_input_control():
         # Square in which the piece is located.
         for counter in range(2):
             if counter == 0:
-                print("\n\t Enter the letter of the piece's square.")
-                button_letter = button_input().split("/")[0]
+                # print("\n\t Enter the letter of the piece's square.")
+                # button_letter = button_input().split("/")[0]
+                button_letter = input("\n\t Enter the letter of the piece's square => ")
                 print("\t * Letter: " + button_letter + "\n")
             else:
-                print("\t Enter the number of the piece's square.")
-                button_number = button_input().split("/")[1]
+                # print("\t Enter the number of the piece's square.")
+                # button_number = button_input().split("/")[1]
+                button_number = input("\t Enter the number of the piece's square => ")
                 button_number = int(button_number)
                 print("\t * Number: " + str(button_number) + "\n")
             counter += 1
@@ -128,12 +131,14 @@ def buttons_input_control():
         # Square to which the piece is to be moved.
         for counter in range(2):
             if counter == 0:
-                print("\t Enter the letter of the square you to move to.")
-                button_letter = button_input().split("/")[0]
+                # print("\t Enter the letter of the square you to move to.")
+                # button_letter = button_input().split("/")[0]
+                button_letter = input("\n\t Enter the letter of the square you to move to => ")
                 print("\t * Letter:" + button_letter + "\n")
             else:
-                print("\t Enter the number of the square you to move to.")
-                button_number = button_input().split("/")[1]
+                # print("\t Enter the number of the square you to move to.")
+                # button_number = button_input().split("/")[1]
+                button_number = input("\t  Enter the number of the square you to move to => ")
                 button_number = int(button_number)
                 print("\t * number:" + str(button_number) + "\n")
             counter += 1
@@ -353,7 +358,9 @@ def new_game_session():
     clear()
     date_time = datetime.datetime.now()
 
-    welcome_message = ("-" * 50) + " SMART CHESS " + ("-" * 50) + "\n\n"
+    welcome_message = ("-" * 67 ) + "\n"
+    welcome_message += art.text2art("Smart chess")
+    welcome_message +=  ("-" * 67 ) + "\n\n"
     welcome_message += "\t * Date: " + date_time.strftime("%d/%m/%Y") + "\n"
     welcome_message += "\t * Time: " + date_time.strftime("%H:%M") + "\n"
     print(welcome_message)

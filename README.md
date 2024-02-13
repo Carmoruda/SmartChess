@@ -1,1 +1,7 @@
-# AjedrezHCP
+# SmartChess
+
+## Description
+
+## Software
+
+## Hardware
