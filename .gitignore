@@ -1,0 +1,6 @@
+# Pycharm folder
+.idea
+venv
+
+# VSCode folder
+.vscode
