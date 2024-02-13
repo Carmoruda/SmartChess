@@ -19,7 +19,7 @@ TOKEN = "YOUR_BOT_TOKEN"
 CHAT_ID = "YOUR_CHAT_ID"
 
 
-def SendMessage(message):
+def send_message(message):
     """
     Send a message through the telegram bot.
     :param message: Message that wants to be sent.
@@ -28,7 +28,7 @@ def SendMessage(message):
     requests.get(url).json()
 
 
-def PieceInSquare(chess_square):
+def piece_in_square(chess_square):
     """
     Identify which piece is placed in a specific square.
     :param chess_square: Coordinate of the box for whose piece we want to check.
@@ -52,11 +52,11 @@ def PieceInSquare(chess_square):
             return "the king"
 
 
-def NewGamePlayerBot():
+def new_game_player_bot():
     """
-   Assign one of the players the name entered by the user and the other to stockfish, set stockfish to the starting
-   board position and start the game.
-   """
+    Assign one of the players the name entered by the user and the other to stockfish, set stockfish to the starting
+    board position and start the game.
+    """
     global white_player
     global black_player
     global ser
@@ -75,28 +75,28 @@ def NewGamePlayerBot():
         black_player = "Stockfish"
         print("\t * Black player: Stockfish")
         input("\n\tPress enter to continue.")
-        SendMessage("New game created:\n\t * White player: " + white_player + "\n\t * Black player: " + black_player)
+        send_message("New game created:\n\t * White player: " + white_player + "\n\t * Black player: " + black_player)
 
         # Starting position
         stockfish.set_fen_position("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
 
         clear()
-        GamePlayerWhiteBotBlack()
+        game_player_white_bot_black()
     elif menu_action == "2":
         white_player = "Stockfish"
         print("\n\t * White player: Stockfish")
         black_player = input("\n\t * Black player: ")
         input("\n\tPress enter to continue.")
-        SendMessage("New game created:\n\t * WhitePlayer: " + white_player + "\n\t * Black player: " + black_player)
+        send_message("New game created:\n\t * WhitePlayer: " + white_player + "\n\t * Black player: " + black_player)
 
         # Starting position
         stockfish.set_fen_position("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
 
         clear()
-        GamePlayerBlackBotWhite()
+        game_player_black_bot_white()
 
 
-def ButtonsInputControl():
+def buttons_input_control():
     """
     Control the input of the buttons of the square in which the piece is located and the square to which
     it is to be moved, as well as checking if the movement is legal.
@@ -109,35 +109,31 @@ def ButtonsInputControl():
     button_letter = ""
 
     while not legal_move:
-        counter = 0
-
         # Square in which the piece is located.
         for counter in range(2):
             if counter == 0:
                 print("\n\t Enter the letter of the piece's square.")
-                button_letter = ButtonInput().split("/")[0]
+                button_letter = button_input().split("/")[0]
                 print("\t * Letter: " + button_letter + "\n")
             else:
                 print("\t Enter the number of the piece's square.")
-                button_number = ButtonInput().split("/")[1]
+                button_number = button_input().split("/")[1]
                 button_number = int(button_number)
                 print("\t * Number: " + str(button_number) + "\n")
             counter += 1
 
         current_position = (button_letter + str(button_number)).lower()
-        piece = PieceInSquare(current_position)
-
-        counter = 0
+        piece = piece_in_square(current_position)
 
         # Square to which the piece is to be moved.
         for counter in range(2):
             if counter == 0:
                 print("\t Enter the letter of the square you to move to.")
-                button_letter = ButtonInput().split("/")[0]
+                button_letter = button_input().split("/")[0]
                 print("\t * Letter:" + button_letter + "\n")
             else:
                 print("\t Enter the number of the square you to move to.")
-                button_number = ButtonInput().split("/")[1]
+                button_number = button_input().split("/")[1]
                 button_number = int(button_number)
                 print("\t * number:" + str(button_number) + "\n")
             counter += 1
@@ -152,19 +148,19 @@ def ButtonsInputControl():
 
             if not board.turn:  # White turn
                 message = ("\tWhite (" + white_player + ") has moved " + piece + " from " + current_position + " to "
-                           + move_position + ".")
-                SendMessage(message)
+                            + move_position + ".")
+                send_message(message)
             else:  # Black turn
                 message = ("\tBlack (" + black_player + ") has moved " + piece + " from " + current_position + " to "
-                           + move_position + ".")
-                SendMessage(message)
+                            + move_position + ".")
+                send_message(message)
 
             return message
         else:
             print("\n\t   Error! The movement isn't legal.\n\n")
 
 
-def ButtonInput():
+def button_input():
     """
     Collect the input from the buttons.
     :return: String indicating which button has been pressed.
@@ -178,7 +174,7 @@ def ButtonInput():
             return string
 
 
-def NewGamePlayerPlayer():
+def new_game_player_player():
     """
     Assign black and white players the name entered by the user, set stockfish to the starting
     board position and start the game.
@@ -195,35 +191,35 @@ def NewGamePlayerPlayer():
 
     input("\n\t Press enter to continue.")
 
-    SendMessage("New game created:\n\t * WhitePlayer: " + white_player + "\n\t * Black player: " + black_player)
+    send_message("New game created:\n\t * WhitePlayer: " + white_player + "\n\t * Black player: " + black_player)
 
     # Starting position
     stockfish.set_fen_position("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
 
-    Game()
+    game()
 
 
-def CheckCheckMate():
+def check_check_mate():
     """
     Check current board position to identify is there is a stalemate or checkmate.
     """
     if board.is_checkmate():
         if board.turn:
             print("\nGame over! Black checkmate.\n")
-            SendMessage("Game over! Black checkmate")
+            send_message("Game over! Black checkmate")
         else:
             print("\nGame over! White checkmate.\n")
-            SendMessage("Game over! White checkmate.")
+            send_message("Game over! White checkmate.")
     elif board.is_stalemate():
         if board.turn:
             print("\nGame over! Stalemate king by Black.\n")
-            SendMessage("Game over! Stalemate king by Black.")
+            send_message("Game over! Stalemate king by Black.")
         else:
             print("\nGame over! Stalemate king by White.\n")
-            SendMessage("Game over! Stalemate king by White.")
+            send_message("Game over! Stalemate king by White.")
 
 
-def GamePlayerWhiteBotBlack():
+def game_player_white_bot_black():
     """
     Control of game moves where stockfish is black and the player white.
     """
@@ -231,18 +227,18 @@ def GamePlayerWhiteBotBlack():
     moves = []
 
     while not board.is_checkmate() and not board.is_stalemate():
-        PrintTurn(counter)
+        print_turn(counter)
 
         if counter % 2 == 0:
-            PlayerMove(moves)
+            player_move(moves)
 
         else:
-            StockfishMove(moves)
+            stockfish_move(moves)
 
-        SetPositionCheckMate(moves, counter)
+        set_position_check_mate(moves, counter)
 
 
-def GamePlayerBlackBotWhite():
+def game_player_black_bot_white():
     """
     Control of game moves where stockfish is white and the player black.
     """
@@ -250,17 +246,17 @@ def GamePlayerBlackBotWhite():
     moves = []
 
     while not board.is_checkmate() and not board.is_stalemate():
-        PrintTurn(counter)
+        print_turn(counter)
 
         if counter % 2 == 0:
-            StockfishMove(moves)
+            stockfish_move(moves)
         else:
-            PlayerMove(moves)
+            player_move(moves)
 
-        SetPositionCheckMate(moves, counter)
+        set_position_check_mate(moves, counter)
 
 
-def SetPositionCheckMate(moves, counter):
+def set_position_check_mate(moves, counter):
     """
     Set stockfish to the new position and check if the there is checkmate/stalemate.
     :param moves: Array of game moves.
@@ -271,12 +267,12 @@ def SetPositionCheckMate(moves, counter):
 
     counter += 1
 
-    CheckCheckMate()
+    check_check_mate()
 
     input("\tPress enter to continue.")
 
 
-def PrintTurn(counter):
+def print_turn(counter):
     """
     Display the name of the player whose turn it is.
     :param counter: Whose turn it is (even White, odd Black).
@@ -294,7 +290,7 @@ def PrintTurn(counter):
     print(turn + ("-" * 30) + "\n")
 
 
-def StockfishMove(moves):
+def stockfish_move(moves):
     """
     Control stockfish next move and send it through message.
     :param moves: Array of game moves.
@@ -306,32 +302,32 @@ def StockfishMove(moves):
     board.push_san(next_move)
     next_move = re.findall('..?', next_move)
 
-    piece = PieceInSquare(next_move[1])
+    piece = piece_in_square(next_move[1])
 
     if not board.turn:
         message = ("\tWhite (" + white_player + ") has moved " + piece + " from " + next_move[0] + " to "
-                   + next_move[1] + ".")
+                    + next_move[1] + ".")
     else:
         message = ("\tBlack (" + black_player + ") has moved " + piece + " from " + next_move[0] + " to "
-                   + next_move[1] + ".")
+                    + next_move[1] + ".")
 
-    SendMessage(message)
+    send_message(message)
     print("\t" + message + "\n\n")
 
 
-def PlayerMove(moves):
+def player_move(moves):
     """
     Control player next move.
     :param moves: Array of game moves.
     """
-    move = ButtonsInputControl()
+    move = buttons_input_control()
     print(move + "\n")
     move = move.split()
     moves.append(move[7] + move[9].replace(".", ""))
-    PieceInSquare(move[9].replace(".", ""))
+    piece_in_square(move[9].replace(".", ""))
 
 
-def Game():
+def game():
     """
     Control game logic (whose turn is, if there is checkmate and print board).
     """
@@ -339,17 +335,17 @@ def Game():
     counter = 0
 
     while not board.is_checkmate() and not board.is_stalemate():
-        PrintTurn(counter)
-        print(ButtonsInputControl() + "\n")
+        print_turn(counter)
+        print(buttons_input_control() + "\n")
         print(board)
 
-        CheckCheckMate()
+        check_check_mate()
 
         counter += 1
         input("\tPress enter to continue.")
 
 
-def NewGameSession():
+def new_game_session():
     """
     Show smart chess name, current date and time.
     """
@@ -363,24 +359,25 @@ def NewGameSession():
     print(welcome_message)
 
 
-def Menu():
+def menu():
     """
     Menu of the smart chess. User may play games against another player or stockfish.
     :return:
     """
 
     while True:
-        NewGameSession()
+        clear()
+        new_game_session()
 
         print("   Select one of the following options:\n\t1   New game 1vs1.\n\t2   New game 1vsBot."
-              "\n\t3   Exit.")
-        menu_option = input("\n  Enter your choice:\n  ===> ")
+                "\n\t3   Exit.")
+        menu_option = input("\n   Enter your choice:\n   ==> ")
 
         match menu_option:
             case "1":
-                NewGamePlayerPlayer()
+                new_game_player_player()
             case "2":
-                NewGamePlayerBot()
+                new_game_player_bot()
             case "3":
                 sys.exit()
             case _:
@@ -394,4 +391,4 @@ def clear(): os.system('cls')
 
 if __name__ == "__main__":
     stockfish = stockfish.Stockfish(path="stockfish.exe")
-    Menu()
+    menu()
