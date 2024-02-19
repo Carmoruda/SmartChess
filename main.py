@@ -3,7 +3,9 @@ import os
 import re
 import sys
 import art
+import gtts
 import chess
+import pygame
 import stockfish
 import datetime
 
@@ -31,6 +33,29 @@ CHAT_ID = "YOUR_CHAT_ID"
 #    """
 #    url = f"https://api.telegram.org/bot{TOKEN}/sendMessage?chat_id={CHAT_ID}&text={message}"
 #    requests.get(url).json()
+
+def text_to_speech(message):
+    """
+    Convert text to speech.
+    :param message: Text to be converted to speech.
+    """
+
+    # Initialize pygame mixer
+    pygame.mixer.init()
+
+    # Convert text to speech and save it as speech.mp3
+    speech_file = "./bin/speech.mp3"
+    speech = gtts.gTTS(message, lang="en")
+    speech.save(speech_file)
+
+    # Play the speech
+    sound = pygame.mixer.Sound(speech_file)
+    sound.play()
+
+    # Wait until the speech is finished
+    while pygame.mixer.get_busy():
+        pygame.time.Clock().tick(1)
+
 
 def new_game_session():
     """
@@ -92,10 +117,13 @@ def new_game_player_bot():
         white_player = input("\n\t * White player: ")
         black_player = "Stockfish"
 
-        print("\t * Black player: Stockfish")
+        print("\t * Black player: {black_player}")
         input("\n\n\tPress enter to continue.")
 
-        print("New game created:\n\t * White player: " + white_player + "\n\t * Black player: " + black_player)
+        new_game_message = f"New game created:\n\t * White player:  {white_player}\n\t * Black player: {black_player}"
+
+        print(new_game_message)
+        text_to_speech(new_game_message)
 
         # Starting position
         stockfish.set_fen_position("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
@@ -105,13 +133,16 @@ def new_game_player_bot():
 
     elif menu_action == "2":  # Human black and bot white
         white_player = "Stockfish"
-        print("\n\t * White player: Stockfish")
+
+        print("\n\t * White player: {white_player}")
 
         black_player = input("\n\t * Black player: ")
-
         input("\n\n\tPress enter to continue.")
 
-        print("New game created:\n\t * WhitePlayer: " + white_player + "\n\t * Black player: " + black_player)
+        new_game_message = f"New game created:\n\t * White player:  {white_player}\n\t * Black player: {black_player}"
+
+        print(new_game_message)
+        text_to_speech(new_game_message)
 
         # Starting position
         stockfish.set_fen_position("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
@@ -187,6 +218,7 @@ def print_turn(counter):
 
     clear()
     print(turn + " " + ("-" * 30) + "\n")
+    text_to_speech(turn)
 
 
 def player_move(moves):
@@ -195,11 +227,12 @@ def player_move(moves):
     :param moves: Array of game moves.
     """
     move = buttons_input_control()
+
     print(move + "\n")
+    text_to_speech(move)
+
     move = move.split()
     moves.append(move[7] + move[9].replace(".", ""))
-    piece_in_square(move[9].replace(".", ""))
-
 
 def stockfish_move(moves):
     """
@@ -223,6 +256,7 @@ def stockfish_move(moves):
                     + next_move[1] + ".")
 
     print("\t" + message + "\n\n")
+    text_to_speech(message)
 
 
 def set_position_check_mate(moves, counter):
@@ -248,13 +282,17 @@ def check_check_mate():
     if board.is_checkmate():
         if board.turn:
             print("\nGame over! Black checkmate.\n")
+            text_to_speech("Game over! Black checkmate.")
         else:
             print("\nGame over! White checkmate.\n")
+            text_to_speech("Game over! White checkmate.")
     elif board.is_stalemate():
         if board.turn:
             print("\nGame over! Stalemate king by Black.\n")
+            text_to_speech("Game over! Stalemate king by Black.")
         else:
             print("\nGame over! Stalemate king by White.\n")
+            text_to_speech("Game over! Stalemate king by White.")
 
 
 def buttons_input_control():
@@ -271,11 +309,15 @@ def buttons_input_control():
 
     while not legal_move:
         print("   Current piece position:")
+        text_to_speech("Current piece position:")
+
         # Square in which the piece is located.
         for counter in range(2):
             if counter == 0:
+                text_to_speech("Enter the letter of the piece's square.")
                 button_letter = input("\n\t * Enter the letter of the piece's square ==> ")
             else:
+                text_to_speech("Enter the number of the piece's square.")
                 button_number = int(input("\t * Enter the number of the piece's square ==> "))
             counter += 1
 
@@ -285,11 +327,15 @@ def buttons_input_control():
         piece = piece_in_square(current_position)
 
         print("   Moving the piece to:")
+        text_to_speech("Moving the piece to:")
+
         # Square to which the piece is to be moved.
         for counter in range(2):
             if counter == 0:
+                text_to_speech("Enter the letter of the square you to move to.")
                 button_letter = input("\n\t * Enter the letter of the square you to move to ==> ")
             else:
+                text_to_speech("Enter the number of the square you to move to.")
                 button_number = int(input("\t * Enter the number of the square you to move to ==> "))
             counter += 1
 
@@ -310,6 +356,7 @@ def buttons_input_control():
             return message
         else:
             print("\n\t   Error! The movement isn't legal.\n\n")
+            text_to_speech("Error! The movement isn't legal.")
 
 
 def piece_in_square(chess_square):
@@ -349,8 +396,13 @@ def menu():
         clear()
         new_game_session()
 
-        print("   Select one of the following options:\n\n\t1   New game 1vs1.\n\t2   New game 1vsBot."
-                "\n\t3   Exit.")
+        menu_message = "   Select one of the following options:\n\n\t1   New game 1vs1.\n\t2   New game 1vsBot.\n\t3   Exit."
+        error_message = "\n\n   Error! The value entered must be 1, 2 or 3."
+
+
+        print(menu_message)
+        text_to_speech(menu_message)
+
         menu_option = input("\n   Enter your choice:\n   ==> ")
 
         match menu_option:
@@ -361,7 +413,9 @@ def menu():
             case "3":
                 sys.exit()
             case _:
-                print("\n\n   Error! The value entered must be 1, 2 or 3.")
+                print(error_message)
+                text_to_speech(error_message)
+
                 input("\n   Press enter to continue.")
                 clear()
 
